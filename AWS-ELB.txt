@@ -1,0 +1,16 @@
+ELB - Elastic Load Balancer
+
+Application Load Balancer - Can load balance based on up to layer 7 info
+	- Best suited for balancing HTTP & HTTPS traffic
+	- Operates at layer 7, application aware, for advanced request routing 
+Network Load Balancer - Operates at layer 4 
+	- Best suited for balancing TCP traffic for fast performance
+	- Can handle millions of requests with ultra-low latency 
+Classic Load Balancer - Legacy LB
+	- Can load balance HTTP/HTTPS & use layer 7 features, like X-Forwarded & sticky sessions
+	- Can load balance TCP for strict layer 4 LB
+	- Recommended to use ALB or NLB instead
+
+LB responds with 504 when application hasn’t responded within idle timeout period, problem at web server or DB
+
+X-Forwarded-For Header - Has Public IP info of end user even after packet forwarded by LB

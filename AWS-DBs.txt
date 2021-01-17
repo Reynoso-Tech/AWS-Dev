@@ -1,0 +1,277 @@
+RDS - SQL - OLTP
+	SQL, MySQL, Postgre, Oracle, Aurora, MariaDB
+DynamoDB - NoSQL
+RedShift - OLAP
+	BI & Big Data
+Elasticache - In-Memory Caching for cloud
+	Very fast
+	Memcached, Redis
+
+Relational Database - SQL
+	- Like a traditional spreadsheet
+	- Tables, Rows, Fields (Columns)
+	- Needs to be pre-defined
+
+
+Non Relational Database - NoSQL
+	Collection = Table
+	Document= Row
+	Key Value Pairs = Fields
+
+	- Doesn’t need to be pre-defined
+	- Just add in data as you go
+
+Data Warehousing - OLAP
+	- Used for BI
+	- Tools like Cognos, Jaspersoft, SQL Server Reporting Services, Oracle Hyperion, & SAP NetWeaver
+	- For very large & complex data sets
+
+Best practice is separate prod DB from data warehousing DB.
+
+OLTP vs OLAP
+Online Transaction Processing differs from Online Analytics Processing in terms of types of queries you will run.
+
+OLTP = Order number that pulls up row of data like Name, Date, Address for delivery, Delivery status, etc.
+	- More frequent, but simple transactions
+OLAP = Net profit for EMEA & Pacific for a product
+	- Sums of radios sold in both regions, Unit cost of radio in both regions, Sales price in both regions, sales price - unit cost + any currency exchange rates.
+	- More complex transactions, but happen infrequently
+
+
+Elasticache
+Web service to deploy, operate, & scale in-memory cache in cloud. Supports memcached & Redis. Speeds up accessing frequently accessed data. 
+Improves application performance by storing critical data in low-latency memory.
+Redis allows replication & multi-az, memcached does not.
+Redis is managed more like RDS with failover like RDS
+Memcached is managed more like a pure caching solution with no persistence, managed as a pool that can grow & shrink, similar to EC2 Auto Scaling Group
+Memcached for simple, compute intensive, no persistence caching
+Redis for sorting like leaderboards, multi-az, persistent data 
+
+Elasticache good for helping a read-heavy DB that is not prone to frequent changing
+
+Redshift good for helping DB stressed by management running OLAP transactions on it
+
+Caching strategies:
+
+Lazy Loading
+	- Loads data into the cache only when necessary
+	- If requested data is not in cache Elasticache returns a null
+	- App then fetches data from the DB & writes data into the cache
+	- Only requested data goes into cache, so not filled with useless data
+	- Node failure isn’t fatal, just will take time to fill up again
+	- Data can become stale, data only updated when cache miss happens, not every time DB gets an update
+	- TTL helps avoid, but not eliminate stale data by setting an expiration time
+Write Through
+	- Adds or updates data to cache whenever data is written to DB
+	- Data in cache is never stale
+	- Additional latency on writes due to write to cache + DB every time
+	- Wastes resources if most data isn’t read
+
+DyanmoDB in-mem caching (DAX) only supports Write Through caching 
+
+Elasticache helps with RDS read-heavy workloads
+
+
+RDS
+
+AWS provides a DNS endpoint for RDS instances. AWS manages public IPv4 mapping
+
+Backups:
+Automated Backups
+	- Allows you to recover your database to any point in time within a “retention period”. 
+	- Retention period can be between 1 - 35 days.
+	- Will take a full daily snapshot & store transaction logs throughout the day. 
+	- During a recovery it applies the most recent daily snapshot then applies transaction logs relevant to the day. 
+	- Can recover to a point in time down to the second within retention period.
+	- Enabled by default, backup data stored in S3, free space given equal to size of DB.
+	- Backups done in defined window, during backup DB storage I/O may slow down
+
+Snapshots
+	- User initiated, user must delete manually too
+	- Stored even after the RDS instance is deleted, unlike automated backups.
+
+After a DB is restored it is brought up as a new instance with a new DNS endpoint
+
+Encryption at rest available for RDS DBs. Encryption done by AWS Key Management Service.
+Cannot encrypt an existing DB normally,
+	To encrypt take a snapshot of DB, then create new DB from snapshot with encryption enabled
+
+Multi AZ
+	- DB copies transactions to another DB in different AZ, sync replication
+	- For disaster recovery only, if first DB dies the same DNS endpoint just points to second DB in different AZ
+	- Automatic failover in case of DR
+	- Does NOT improve normal performance
+	- AWS Aurora has multi AZ by default, other SQL DBs need it enabled
+
+Read Replicas
+	- For performance improvement
+	- Creates read-only copies of primary DB
+	- Uses async replication from primary DB to replicas
+	- Scaling out for read-heavy DB workloads
+	- Supports MySQL, PostgreSQL, MariaDB, Aurora
+	- Does NOT provide DR
+	- Can have up to 5 read replicas, can have multi AZ for replicas
+	- Read replica can be promoted to own DB, this breaks replication
+	- Read replica can be in another region
+	- Must have automatic backups turned on in order to deploy a read replica
+
+
+
+DynamoDB
+
+Fast & flexible NoSQL database. Consistent single-digit millisecond latency at any scale.
+Fully managed by AWS, supports both document & key-value models
+Stored on SSD storage, Spread across 3 geo separated data centers
+
+Offers 2 consistency models:
+	- Eventual consistent reads (default)
+		- Repeating a read after a short time should return the updated data 
+		- Best Read performance
+	- Strongly consistent reads
+		- Reads will ALWAYS reflect all writes received before the read
+		- Slower read performance
+
+
+Tables
+Items (Row of data)
+Attributes (Column of data)
+Key = Name of data, Value = the data itself
+Documents can be written in JSON, HTML, or XML
+
+
+Primary keys:
+DynamoDB stores & retrieves data based on a Primary Key
+Two types of Primary Key
+
+Partition Key
+	- Unique attribute (e.g. User ID)
+	- No 2 items can have the same Partition Key
+	- Data with same Partition Key stored together
+Composite Key (Partition Key + Sort Key)
+	- Consists of Partition Key (e.g. User ID) + Sort Key (e.g. Timestamp of post to forum) 
+	- 2 items can have the same Partition Key, but must have different Sort Key
+	- All items with same Partition Key stored together, then sorted by Sort Key
+	- Used if you have items with same Partition Key
+
+Auth & Access control managed using AWS IAM
+Can use IAM Condition to restrict user access to only their own records
+IAM Condition is applied to an IAM Policy & can allow access to items where the Partition Key value matches their User ID. The user would not be able to see other records in the same table
+IAM Condition parameter - dynamodb:LeadingKeys
+
+Index:
+In SQL DBs, an index allows you to perform fast queries on a specific column in a table.
+Queries are then run on the index instead of the entire dataset
+2 Types of indexes in DynamoDB
+Local Secondary Index
+	- Can only be created when table is first created
+	- Cannot add, remove, or modify after
+	- Uses same Partition Key, but different Sort Key, causing different view of data
+Global Secondary Index
+	- Can create whenever you want
+	- Can pick a different Partition Key & Sort Key 
+
+Query:
+Finds items in a table based on the Primary Key & value to search for
+	E.g. Select an item where user ID equals 212, will select all the attributes for that item
+By default query returns all attributes for items, you can use the ProjectionExpression parameter to return only specific attributes
+Can reverse order of sort by setting the ScanIndexForward parameter to False
+By default, Queries are Eventually Consistent
+Can be explicitly set to Strongly Consistent
+
+Scan:
+Examines every item in the table
+By default returns all data attributes
+You can use the ProjectionExpression parameter to return only attributes you want
+
+Query is more efficient than a Scan, Scan returns entire table
+You can reduce impact of Scan by settings smaller page size, page size of 40 will return 40 items
+Avoid Scan operations if you can: use Query, Get, or BatchGetItem 
+
+DynamoDB Transactions:
+ACID Transactions (Atomic, Consistent, Isolated, Durable)
+For mission critical DBs that need an all or nothing operation
+Check for condition(s) before write to table
+
+DynamoDB TTL:
+Time to Live, defines expiry time for data
+Expired items marked for deletion
+Great for removing old data
+Old session data, event logging, temp data
+Helps reduce cost by automatically removing data no longer relevant
+TTL expressed in epoch time (# of seconds since 1970, jan 1st, midnight)
+When current epoch time is greater than TTL epoch time, the item will be expired & marked for deletion
+You define attribute for item, then under Actions in DynamoDB console
+	Manage TTL -> Input TTL Attribute (Number type, epoch timestamp)
+	Can Run preview in console to see what would be marked for deletion at a time
+
+DynamoDB Accelerator (DAX):
+Fully managed, clustered, in-memory cache for DynamoDB
+Can improve reads up to 10x
+Ideal for Read-Heavy workloads
+Write-through caching service, data written to cache & DB at same time
+DynamoDB API calls are aimed at DAX cluster
+If data is in cache (cache hit), DAX returns the data to app
+If data is not in cache (cache miss), DAX performs an Eventually Consistent GetItem op on DynamoDB
+Caters to Eventually Consistent reads only
+Not suitable for apps needing Strongly Consistent Reads
+Not suitable for Write intensive apps
+Not suitable for apps that don’t require many reads
+
+DynamoDB Streams:
+Time-ordered sequence of item level modifications (insert, update, delete)
+Logs are encrypted at rest, only stored for 24 hours before deleting
+For auditing & archiving transactions
+Can be used to trigger events when a certain change occurs, using Lambda
+Accessed using a dedicated endpoint
+Events recorded near real-time
+Lambda can poll the DynamoDB stream to trigger an event
+
+DynamoDB Pricing
+On-Demand for unpredictable workloads, Pay-per-request model, Spiky short lived peaks
+
+Provisioned for when you can forecast read/write requirements, predictable app traffic, traffic increase consistent or gradually
+
+Can switch between pricing models once per day on active DynamoDBs
+
+Provisioned Capacity:
+
+Read & Write Capacity Units
+DynamoDB Provisioned Throughput is measured in Capacity Units
+When table is created you specify Read Capacity Units & Write Capacity Units
+1 Write Capacity Unit = 1 KB Write per second
+1 Read Capacity Unit = 1 Strongly Consistent Read of 4 KB per second
+OR = 2 Eventually Consistent Read of 4KB per second (Default)
+
+Example provisioned throughput DyanmoDB: Table with 5 Read Capacity Units & 5 Write Capacity Units
+5 x 4KB Strongly Consistent reads = 20KB per second Strongly Consistent reads
+Twice rate for Eventually Consistent reads = 40KB per second Eventually Consistent reads
+5 x 1KB Writes = 5KB per second Writes
+
+Example Strongly Consistent Reads calc: An application needs to read 80 items per second, each item is 3KB, need Strongly Consistent Reads.
+
+Each item = 3 KB / Read Capacity Unit = 4KB
+0.75 = 1 Read Capacity Unit per item
+80 items per second * 1 Read Capacity Unit per item = 80 Read Capacity Units 
+80 Read Capacity Units needed for application
+If application can use Eventually Consistent Reads, 80 / 2 = 40 Read Capacity Units
+
+Example Write Capacity calc: You need to write 100 items per second, each item is 512 bytes in size
+Write Capacity for each write = item size 512 bytes / 1KB Write Capacity Unit
+512 bytes / 1KB = 0.5 = 1 Write Capacity Unit per item
+100 items per second * 1 Write Capacity Unit per item = 100 Write Capacity Units
+
+Provisioned Throughput Exceeded Exception:
+Your request rate is too high for the Read/Write capacity provisioned
+AWS SDK will automatically retry requests using Exponential Backoff
+If not using AWS SDK, you can reduce request frequency or configure exponential backoff
+Exponential Backoff: Progressively longer waits between consecutive retries
+All AWS SDKs use Exponential Backoff
+If after 1 minute requests still don’t work, the size of the request may be exceeding throughput 
+
+On-Demand Capacity:
+
+Charges apply for: Reading, Writing, & Storing data
+Don’t need to specify Read & Write Capacity Units
+Instantly scales up & down based on activity
+Great for unpredictable workloads
+Pay per request model 

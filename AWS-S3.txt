@@ -1,0 +1,99 @@
+Simple Storage Service
+	- Object-based storage
+	- Files can be from 0 B to 5 TB
+	- Unlimited storage
+	- Files in “buckets” (a folder in the cloud)
+	- S3 is a universal namespace. Names must be unique globally
+	- Bucket creates a web address 
+	- When a file is uploaded to S3 it returns an HTTP 200 code, successful.
+
+S3 Object-based Storage
+Key - Name of object (file name)
+Value - The data you are storing in S3 ( actual bits in your file)
+Version ID - For versioned deployment
+Metadata - Data about the data you are storing in S3
+Subresources;
+	Access control lists
+	Torrent
+
+Object based storage - S3, for files (pictures, videos, text)
+
+Blocked based storage - EBS, for OS or DB
+
+Data consistency model for S3:
+If you write a new file, then read that file immediately afterwards, you will be able to view that data
+If you update an existing file, then read that file immediately afterwards, you may get the old version, changes to an object take time to propagate.
+
+AWS guarantees 11 9s durability for file ( file will not be lost)
+
+S3 Storage Classes:
+
+S3 Standard
+	- S3 built for 99.99% availability
+	- AWS guarantees 99.9% availability 
+	- Stored redundantly across multiple devices in multiple facilities
+S3 - IA
+	- Infrequently Accessed, but rapid access when needed
+	- Charged lower than S3 Standard fee, but has a retrieval fee when accessing data
+S3 One Zone - IA
+	- Infrequently Accessed & only in one zone
+	- Cheaper than S3 - IA because of no redundancy 
+S3 - Intelligent Tiering
+	- Designed to automatically optimize cost, moves data to different tiers
+S3 Glacier
+	- Secure, durable, & low-cost for data archiving.
+	- Retrieval time configurable from minutes to hours
+S3 Glacier Deep Archive
+	- Lowests cost storage class
+	- Retrieval times of 12 hours
+
+Charged for storage per GB, requests, Storage management pricing, Data transfer pricing
+Can enable for extra cost: 
+	Transfer Acceleration - Takes advantage of AWS CloudFront edge locations to optimize how data is routed to AWS S3.
+	- User actually uploads to edge location instead of S3, so edge location handles getting to S3.
+Cross region replication - Copies all changes to bucket to another bucket in another region.
+	- Offers DR
+
+S3 Security
+By default all newly created buckets are private
+Access control setup on bucket by using:
+	Bucket Policies - Applied at a bucket level
+	Access Control Lists - Applied at an object level
+S3 buckets can be configured to create access logs, logs all requests made to the bucket
+
+Bucket policy can override permission to make files public in S3.
+ACL still needs to be changed after bucket policy changed to allow public
+ACL applies at individual object level
+
+S3 Encryption 
+In transit: SSL/TLS, TLS is replacing SSL, but SSL still used
+At rest: Service Side Encryption
+
+S3 Manage Keys (AES 256 bit) - SSE-S3
+AWS Key Management Service, Managed Keys - SSE-KMS
+	- Additional features, envelope key (encrypts encryption key), Audit trail
+Server Side Encryption with Customer Provided Keys - SSE-C
+Client Side Encryption
+	- You encrypt files yourself before uploading to S3
+
+To Enforce Encryption on S3 Buckets:
+
+When a file is uploaded to S3 the HTTP PUT request header is checked first using “Expect: 100-continue” at the end of the header. After the client gets a 100 response back the body is sent. 
+
+If the file is going to be encrypted at upload time the “x-amz-server-side-encryption” parameter will be included in the HTTP request header.
+
+Two options for this parameter (x-amz-server-side-encryption):
+	x-amz-server-side-encryption: AES256
+		- This is for SSE-S3
+	x-amz-server-side-encryption: aws:kms
+		- This uses SSE-KMS
+
+When one of these parameters is in the HTTP PUT request header it tells S3 to encrypt that object at time of upload using the encryption method.
+
+You can enforce Server Side Encryption by using a Bucket Policy that denies any S3 PUT request without “x-amz-server-side-encryption” in the header.
+
+CORS - Cross Origin Resource Sharing:
+Allows code in 1 origin to reference something outside of origin (like in another S3 bucket)
+On bucket with info you want to access
+Go into permissions, edit button in CORS section
+Need to input static endpoint accessing bucket

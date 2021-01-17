@@ -1,0 +1,56 @@
+Like a VM, but hosted by AWS instead of in your own data center
+
+Reserved capacity 
+	- Instances are region specific. About <= 70% discount for committing to instance for 1 or 3 years.
+	- Predictable usage
+	- Specific capacity requirements 
+	- Discount for paying up front 
+	Standard 
+		- Cannot change during term
+	Convertible 
+		- Has option to change to instances of equal or greater value
+	Scheduled 
+		- Launches reservation during a predictable recurring schedule
+On demand 
+	- Pay by the hour or second of instance run time
+	- Flexible
+	- Short-term
+Spot 
+	- Purchases unused capacity at huge discount, performance & price fluctuates
+	- Set a max price you are willing to pay, unused capacity price raises as supply drops, if price exceeds your max price your instance will stop until price drops again
+
+Dedicated 
+	- Buy a physical EC2 server for yourself. Most expensive, useful for compliance or licensing issues with multi tenant hardware
+	- On-demand or reserved - Hourly or discounted with commitment
+
+Instance types - determines the hardware of the machine running instance. Select based on application requirements 
+
+AMI - Amazon Machine Image - OS that instance will run on boot 
+
+EBS - Elastic Block Store - Storage you can attach to an EC2 instance
+	- At least 1 EBS vol on all EC2 instances (for root), Seen as a normal system disk to OS
+	- Good for prod, Highly available, automatically replicated in availability zone to protect against hardware fail
+	- Dynamic increase & change vol with no downtime or impact 
+
+General Purpose SSD (gp2, gp3)
+	- Balanced price & performance 
+	- 3 IOPS per GB of storage, up to max of 16k IOPS per vol
+	- If < 1TB can burst up to 3k IOPS using IO credits 
+
+Provisioned IOPS SSD (io1, io2)
+	- Optimized IOPS performance
+	- 50 IOPS per GB of storage, up to 64k IOPS per vol
+	- “io2” has 500 IOPS per GB, still up to 64k max
+	- “io2” has 5 9s availability 
+	- Use if more than 16k IOPS needed 
+
+Throughput Optimized HDD (st1)
+	- 40 MB/s per TB
+	- Can burst up to 250 MB/s per TB, max of 500 MB/s per vol
+	- Low cost HDD vol for Big data, ETL, & log processing
+	- CANNOT be a boot vol 
+
+Cold HDD (sc1)
+	- 12 MB/s per TB
+	- Can burst up to 80 MB/s, max of 250 MB/s per vol
+	- Lowest cost option 

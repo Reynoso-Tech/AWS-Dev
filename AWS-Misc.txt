@@ -1,0 +1,52 @@
+AWS CLI Pagination:
+
+default page size is 1,000 items
+
+--page-size x (will return x number of items per api call, still retrieves all items, just makes more calls)
+--max-items x (will limit items returned to x)
+
+Roles allow you not to use access keys on ec2 instances
+Roles are preferred from a security perspective
+Role controlled by policy
+Policy change on role takes immediate effect
+Roles can attach & detach from running ec2 instances 
+
+
+AWS Systems Manager Parameter Store:
+
+Under Systems Manager service in AWS
+Under App Management - Parameter Store
+
+Type can be String, StringList, or SecureString
+SecureString encrypted using KMS 
+Good for confidential info like passwords, DB connection strings, & license codes.
+Can store as plain text or encrypted
+Parameter can be accessed by EC2, CloudFormation, Lambda, EC2 Run Command
+
+Route 53:
+
+An AWS DNS service
+Allows you to map domain names to EC2 instances, ELBs, or S3 buckets
+
+Hosted zone to manage records
+
+CloudFront:
+
+CDN (Content Delivery Network) is a system of distributed servers that provide content to a user based on the geolocation of the user. Helps speed up delivery when users are in different geolocations.
+CloudFront is focused on content delivery, more efficient reads & downloads
+Reduces amount of network hops 
+
+Edge Location - Is where the content is cached & can also be written. Separate to an AWS Region/AZ. Multiple edge locations can be in 1 AZ 
+Origin - Origin of files the CDN distributes, can be an S3 bucket, EC2 instance, ELB, or R53
+
+Distribution - Name given to the CDN, consists of a collection of edge locations
+
+Types of Distribution 
+Web Distribution - normally used for Websites (HTTP/HTTPS)
+RTMP - Used for media streaming
+
+Objects are cleared from cache after TTL expires
+Can restrict view access with Signed URLs or Signed Cookies (for websites with paid content)
+Offers WAF (web application firewall, protects against application attacks) 
+Offers geo-restrictions, can white list or black list requests from certain countries 
+Cache can be cleared by invalidated objects

@@ -1,0 +1,10 @@
+IAM is universal, applies to full AWS account
+New users have NO permissions when first created
+After creating a new user (for api access) you are only able to view keys once, save in secure location
+Always setup MFA on root user (email used to setup AWS account)
+Create & customize password policies in IAM
+
+Users - end users
+Groups - Logical group of IAM users needing same permissions for job functions
+Roles - To grant permissions to entities you trust; IAM user in another account, application code running on ec2, an aws service accessing another aws service, users from corp AD using federation with SAML
+Policies - The actual permission or permissions to apply to role or group or user 
