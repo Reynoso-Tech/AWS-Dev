@@ -50,3 +50,73 @@ Can restrict view access with Signed URLs or Signed Cookies (for websites with p
 Offers WAF (web application firewall, protects against application attacks) 
 Offers geo-restrictions, can white list or black list requests from certain countries 
 Cache can be cleared by invalidated objects
+
+Messaging Services:
+
+SQS - Message Queue service
+Helps decouple application components 
+Messages are not deleted until successfully processed
+Messages can contain up to 256 KB of text in any format 
+Messages are retrieved using SQS API 
+Pull-Based
+Messages can be kept in queue for up to 14 days, default is 4 days 
+
+SQS Queue types 
+    - Standard queue, default, best effort ordering
+        - Nearly-unlimited number of transactions per second
+    - FIFO queue, first in first out, strict ordering 
+        - Exactly once processing, message available until processed or deleted
+        - 300 transactions per second limit 
+
+Visibility Timeout - the amount of time a message is invisible in queue after it is read
+    - 30 seconds by default
+    - If message processed okay it should be deleted before visibility timeout
+    - If message not deleted before timeout it will be available in queue again 
+    - If messages normally take over 30 seconds to process change timeout, max is 12 hours
+
+Short Polling - Returns response immediately, even if queue is empty
+    - Can result in lots of empty reponses
+    - Costs rise with extra responses 
+Long Polling - Periodically polls queue
+    - Doesn't return a response until a message arrives or long poll times out
+    - Can save money, long polling is generally perferable to short polling
+
+SQS Delay Queues - postpone delivery of new messages
+    - Messages sent to delay queue are invisible for duration of delay period 
+    - Default delay is 0 seconds, max is 900 
+    - If delay period changed
+        - In standard queue it doesn't affect messages already in queue
+        - In FIFO queue it affects messages in queue
+
+For large messages (over 256KB, up to 2GB) use S3 to store messages
+Amazon SQS Extended Client Library (along with aws-sdk) used to manage those messages in S3
+
+SNS - Notification Service 
+Messages are immediately delivered to subscriptions 
+Push based 
+Use pub-sub model (publish & subscribe)
+App publishes to SNS topic, confirmed subscribers to topic will recieve the message
+
+SES - Email Service
+Scalable, highly available email 
+Can send & receive emails to an S3 bucket
+Can trigger Lambda & SNS 
+
+
+Kinesis - services that enable you to collect, process & analyze streaming data
+
+    - Kinesis streams - Allows you to build custom applications that process data in real-time, Data streams or video streams
+        - Kinesis shards - The Kinesis stream is made up of shards
+            - Each shard is a sequence of 1 or more data records, capacity controlled by number of shards
+            - Each shard has 5 reads per second, with max read rate 2MB per second
+            - Each shard has 1,000 writes per second, with max write rate 1MB per second
+            - Add more shards to increase capacity 
+            - Default retention 24 hours, up to 7 days 
+    - Kinesis Data Firehose - Allows you to capture, transform, load data streams into AWS data stores
+        - to enable near-real-time analytics with BI tools
+        - no shards or streams
+        - optionally can use a lambda to process data real-time when it comes to Firehose
+        - no data retention, sends data straight to perm storage (S3, Elasticsearch)
+    - Kinesis Data Analytics - Analyze, query, & transform streamed data in real-time using SQL
+        - Allows you to run SQL queries on data as it leaves data firehose or streams
+        - Data returned from query can be stored in S3, elasticsearch, redshift

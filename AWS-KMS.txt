@@ -1,0 +1,48 @@
+KMS - Key Management Service
+	- Managed service that helps create & control keys used to encrypt data
+	- Integrated with many AWS services
+
+CMK - Customer Master Key
+	- Encrypt/decrypt data up to 4KB
+	- CMK is used to encrypt/decrypt the Data Key.
+	- Data Key used to encrypt/decrypt your data
+	- Known as Envelope Encryption (A key de/encrypts another key that de/encrypts actual data)
+
+Key types:
+	- Symmetric - single key used for de/encrypt ops
+	- Asymmetric - a public + private key pair that can be used for de/encrypt ops or sign/verify ops
+
+
+Key material origins:
+	- KMS - default
+	- External - provide your own 
+	- Custom key store(CloudHSM) - dedicated single tenant hardware, for compliance
+
+
+An alias is created with CMK to refer to key instead of key ID
+
+Key administrators - IAM users or roles selected to allow use of KMS api to admin this key
+
+Key usage permissions - IAM users or roles that can use this key to de/encrypt data using api
+
+If you delete a key it isn't deleted right away, it is scheduled for a week later. Allows you to cancel
+
+KMS console shows AWS managed keys for services you use as well, CMK is under customer managed keys
+
+KMS API Calls - If user or role was defined in key usage permission
+	- aws kms encrypt 
+		- encrypts plaintext into ciphertext by using a CMK
+	- aws kms decrypt
+		- decrypts ciphertext that was encrypted using KMS
+	- aws kms re-encrypt
+		- decrypts ciphertext then re-encrypts it entirely within AWS KMS (for changing the CMK or manual rotation)
+	- aws kms enable-key-rotation
+		- enables automatic key rotation once per year
+	- aws kms generate-data-key
+		- uses CMK to generate a data key to encrypt data > 4KB
+		- returns encrypted data key, KMS does not store data key
+		- to use data key, KMS is sent the encrypted data key
+			- KMS returns decrypted data key
+				- decrypted data key used to de/encrypt data > 4KB
+ 
+
